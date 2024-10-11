@@ -12,10 +12,6 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
     && apt-get install -y nodejs \
-    && curl -fsSL https://www.mongodb.org/static/pgp/server-6.0.asc | apt-key add - \
-    && echo "deb [ arch=amd64,arm64 ] https://repo.mongodb.org/apt/ubuntu focal/mongodb-org/6.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-6.0.list \
-    && apt-get update \
-    && apt-get install -y mongodb-org \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
@@ -37,6 +33,5 @@ RUN npm install
 # Expose ports (adjust these as necessary)
 EXPOSE 3000 5000
 
-# Start MongoDB, backend, and frontend
-CMD service mongod start && \
-    (cd /app/backend && npm start) & (cd /app/frontend && npm start)
+# Start backend and frontend
+CMD (cd /app/backend && npm start) & (cd /app/frontend && npm start)
