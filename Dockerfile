@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     curl \
     gnupg2 \
     lsb-release \
+    git \
     && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
     && apt-get install -y nodejs \
     && apt-get clean \
@@ -19,8 +20,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /app
 
 # Clone the repository
-RUN apt-get install -y git \
-    && git clone https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git .
+RUN git clone https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git .
 
 # Install frontend dependencies
 WORKDIR /app/frontend
