@@ -1,37 +1,36 @@
-# Use an official Ubuntu as a parent image
-FROM ubuntu:22.04 AS builder
+# Use Node.js image as base, which already has Node.js and npm
+FROM node:20-buster AS build
 
-# Set environment variables
-ENV DEBIAN_FRONTEND=noninteractive
-ENV NODE_VERSION=18.x
+RUN apt-get update && \
+    apt-get install -y curl gnupg lsb-release git && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install necessary packages
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg2 \
-    lsb-release \
-    git \
-    && curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION} | bash - \
-    && apt-get install -y nodejs \
-    && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+# Install MongoDB
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg && \
+    echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list && \
+    apt-get update && \
+    apt-get install -y mongodb-org && \
+    rm -rf /var/lib/apt/lists/*
 
 # Set the working directory
 WORKDIR /app
 
-# Clone the repository
+# Clone the repository (same as in your original)
 RUN git clone https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git .
 
-# Install frontend dependencies
-WORKDIR /app/frontend
-RUN npm install
-
-# Install backend dependencies
 WORKDIR /app/backend
 RUN npm install
 
-# Expose ports (adjust these as necessary)
-EXPOSE 3000 5000
+WORKDIR /app/frontend
+RUN npm install
+RUN npm run build
 
-# Start backend and frontend
-CMD (cd /app/backend && npm start) & (cd /app/frontend && npm start)
+WORKDIR /app
+
+# Expose required ports
+EXPOSE 5000 27017
+
+RUN mkdir -p /data/db
+
+# CMD: Start MongoDB and the backend server
+CMD ["sh", "-c", "mongod --bind_ip_all --dbpath /data/db --logpath /var/log/mongodb.log --fork && npm run server"]
