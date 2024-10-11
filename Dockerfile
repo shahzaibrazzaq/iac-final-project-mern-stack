@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 # Set the working directory
 WORKDIR /app
-
+ADD https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git 
 # Copy the frontend and backend files
 COPY ./frontend ./frontend
 COPY ./backend ./backend
