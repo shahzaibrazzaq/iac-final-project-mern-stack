@@ -1,24 +1,19 @@
-version: '3.8'
-
+version: '3'
 services:
-  app:
-    build:
-      context: .
-    ports:
-      - "5000:5000"
-      - "3000:3000"
-    volumes:
-      - ./backend:/usr/src/app/backend
-      - ./frontend:/usr/src/app/frontend
-    depends_on:
-      - mongo
-
   mongo:
     image: mongo:latest
+    container_name: final-project_mongo_1
     ports:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
 
+  app:
+    build: ./path-to-your-app-directory  # Adjust the path where your app's Dockerfile is
+    container_name: final-project_app_1
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
 volumes:
   mongo-data:
