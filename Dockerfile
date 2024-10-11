@@ -19,10 +19,11 @@ RUN apt-get update && apt-get install -y \
 
 # Set the working directory
 WORKDIR /app
-ADD https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git 
-# Copy the frontend and backend files
-COPY ./frontend ./frontend
-COPY ./backend ./backend
+
+# Clone the repository
+RUN apt-get install -y git \
+    && git clone https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git .
+
 
 # Install frontend dependencies
 WORKDIR /app/frontend
@@ -38,5 +39,4 @@ EXPOSE 3000 5000
 # Start MongoDB, backend, and frontend
 CMD service mongodb start && \
     (cd /app/backend && npm start) & (cd /app/frontend && npm start)
-
 
