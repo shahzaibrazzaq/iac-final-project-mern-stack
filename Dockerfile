@@ -1,36 +1,36 @@
-# Use Node.js image as base, which already has Node.js and npm
-FROM node:20-buster AS build
+# Use Ubuntu as base image
+FROM ubuntu:latest
 
-RUN apt-get update && \
-    apt-get install -y curl gnupg lsb-release git && \
-    rm -rf /var/lib/apt/lists/*
+# Set environment variables
+ENV DEBIAN_FRONTEND=noninteractive
+ENV NODE_VERSION=16
 
-# Install MongoDB
-RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg && \
-    echo "deb [arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list && \
-    apt-get update && \
-    apt-get install -y mongodb-org && \
-    rm -rf /var/lib/apt/lists/*
+# Install essential tools and dependencies
+RUN apt-get update && apt-get install -y \
+    curl \
+    gnupg \
+    lsb-release \
+    git \
+    build-essential \
+    && rm -rf /var/lib/apt/lists/*
 
-# Set the working directory
+# Install Node.js (version 16)
+RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
+    && apt-get install -y nodejs \
+    && npm install -g npm@latest
+
+# Set up working directory
 WORKDIR /app
 
-# Clone the repository (same as in your original)
-RUN git clone https://github.com/shahzaibrazzaq/iac-final-project-mern-stack.git .
+# Copy the MERN app into the container
+COPY . .
 
-WORKDIR /app/backend
+# Install app dependencies
+RUN cd frontend && npm install && npm run build
 RUN npm install
 
-WORKDIR /app/frontend
-RUN npm install
-RUN npm run build
+# Expose necessary ports
+EXPOSE 3000 5000
 
-WORKDIR /app
-
-# Expose required ports
-EXPOSE 5000 27017
-
-RUN mkdir -p /data/db
-
-# CMD: Start MongoDB and the backend server
-CMD ["sh", "-c", "mongod --bind_ip_all --dbpath /data/db --logpath /var/log/mongodb.log --fork && npm run server"]
+# Start the MERN server
+CMD ["npm", "run", "server"]
