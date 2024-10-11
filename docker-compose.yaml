@@ -1,45 +1,23 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  app:
+    build: .
     ports:
+      - "3000:3000"
       - "5000:5000"
     depends_on:
-      - mongodb
+      - mongo
     environment:
-      MONGO_URI: mongodb://mongodb:27017/mernapp
-    volumes:
-      - ./backend:/app/backend
-      - ./frontend:/app/frontend
+      - MONGO_URL=mongodb://mongo:27017/mern-db
 
-  frontend:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - "80:80"
-    depends_on:
-      - backend
-    volumes:
-      - ./frontend:/app/frontend
-      - ./backend:/app/backend
-
-  mongodb:
-    image: mongo:8.0
-    container_name: mongodb
+  mongo:
+    image: mongo:6.0
+    restart: always
     ports:
       - "27017:27017"
     volumes:
-      - mongodb-data:/data/db
-    networks:
-      - mern-network
-
-networks:
-  mern-network:
-    driver: bridge
+      - mongo-data:/data/db
 
 volumes:
-  mongodb-data:
+  mongo-data:
