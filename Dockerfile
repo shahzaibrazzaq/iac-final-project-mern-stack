@@ -1,36 +1,38 @@
 # Use Ubuntu as base image
-FROM ubuntu:latest
+FROM ubuntu:20.04 
 
-# Set environment variables
+# Set environment variable to avoid interactive prompts during package installation
 ENV DEBIAN_FRONTEND=noninteractive
-ENV NODE_VERSION=16
 
-# Install essential tools and dependencies
-RUN apt-get update && apt-get install -y \
-    curl \
-    gnupg \
-    lsb-release \
-    git \
-    build-essential \
-    && rm -rf /var/lib/apt/lists/*
+# Install required packages
+RUN apt-get update && \
+    apt-get install -y curl gnupg lsb-release git vim nginx && \
+    rm -rf /var/lib/apt/lists/*
 
-# Install Node.js (version 16)
-RUN curl -fsSL https://deb.nodesource.com/setup_${NODE_VERSION}.x | bash - \
-    && apt-get install -y nodejs \
-    && npm install -g npm@latest
+# Install Node.js and npm using Nodesource
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set up working directory
-WORKDIR /app
+# Install MongoDB
+RUN curl -fsSL https://www.mongodb.org/static/pgp/server-8.0.asc | \
+    gpg --dearmor -o /usr/share/keyrings/mongodb-server-8.0.gpg && \
+    echo "deb [ arch=amd64,arm64 signed-by=/usr/share/keyrings/mongodb-server-8.0.gpg ] https://repo.mongodb.org/apt/ubuntu $(lsb_release -cs)/mongodb-org/8.0 multiverse" | tee /etc/apt/sources.list.d/mongodb-org-8.0.list && \
+    apt-get update && \
+    apt-get install -y mongodb-org && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the MERN app into the container
-COPY . .
-
-# Install app dependencies
-RUN cd frontend && npm install && npm run build
+WORKDIR /opt/app
+RUN git clone https://github.com/shahzaibrazzaq/Finaltask_merncode.git .
 RUN npm install
+WORKDIR /opt/app/frontend
+RUN npm install
+RUN npm run build
+WORKDIR /opt/app
 
-# Expose necessary ports
-EXPOSE 3000 5000
+EXPOSE 27017
+EXPOSE 5000
 
-# Start the MERN server
-CMD ["npm", "run", "server"]
+RUN mkdir -p /data/db && chown -R mongodb:mongodb /data/db
+
+CMD ["sh", "-c", "mongod --bind_ip_all --dbpath /data/db --logpath /var/log/mongodb.log --fork && npm run server"]
