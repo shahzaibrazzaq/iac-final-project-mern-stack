@@ -5,7 +5,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-      no_cache: true
+      
     image: mern_image_updated
     ports:
       - "5000:5000"
